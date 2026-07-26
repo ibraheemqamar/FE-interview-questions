@@ -1,14 +1,42 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { CARDS } from "../data/cards.js";
+import toast from "react-hot-toast";
 import { CAT_ORDER, CAT_META } from "../data/categories.js";
 import { useProgress } from "../contexts/ProgressContext.jsx";
+import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { isDue } from "../lib/sm2.js";
 
 export default function StatsPage() {
-  const { progress, reset } = useProgress();
+  const { progress, reset, streak, exportData, importProgress } = useProgress();
+  const { questions: CARDS } = useQuestions();
   const { user } = useAuth();
+  const fileRef = useRef(null);
+
+  const handleExport = () => {
+    const data = exportData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fid-progress-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Progress exported.");
+  };
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-importing the same file
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const res = await importProgress(parsed);
+      toast.success(`Imported — ${res.merged} of ${res.seen} cards merged.`);
+    } catch (err) {
+      toast.error("Couldn’t import that file: " + err.message);
+    }
+  };
 
   const stats = useMemo(() => {
     const entries = Object.entries(progress);
@@ -32,7 +60,7 @@ export default function StatsPage() {
     });
 
     return { known, review, studied, dueCount, byCat };
-  }, [progress]);
+  }, [progress, CARDS]);
 
   const totalStatic = CARDS.length;
   const pctDone = totalStatic > 0 ? Math.round((stats.studied / totalStatic) * 100) : 0;
@@ -45,6 +73,24 @@ export default function StatsPage() {
         <p className="page-sub">
           {user ? `Progress synced to cloud for ${user.email}.` : "Progress saved locally. Sign in to sync across devices."}
         </p>
+      </div>
+
+      {/* Study streak */}
+      <div className="streak-banner">
+        <span className="streak-flame">{streak.current > 0 ? "🔥" : "🌱"}</span>
+        <div className="streak-text">
+          <div className="streak-num">
+            {streak.current} day{streak.current === 1 ? "" : "s"}
+          </div>
+          <div className="streak-sub">
+            {streak.current === 0
+              ? "Study a card to start a streak"
+              : streak.studiedToday
+              ? "Studied today — keep it going tomorrow"
+              : "Study today to keep your streak alive"}
+            {streak.longest > 0 && ` · longest ${streak.longest}`}
+          </div>
+        </div>
       </div>
 
       {/* Summary grid */}
@@ -119,7 +165,28 @@ export default function StatsPage() {
         })}
       </div>
 
-      <div style={{ marginTop: "40px", textAlign: "center" }}>
+      {/* Backup & restore */}
+      <div className="backup-row">
+        <button className="ghost backup-btn" onClick={handleExport}>
+          ⭳ Export progress
+        </button>
+        <button className="ghost backup-btn" onClick={() => fileRef.current?.click()}>
+          ⭱ Import progress
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          style={{ display: "none" }}
+          onChange={handleImportFile}
+        />
+      </div>
+      <p className="backup-hint">
+        Export a JSON backup of your spaced-repetition state, or merge one in
+        (the most recently reviewed version of each card wins).
+      </p>
+
+      <div style={{ marginTop: "32px", textAlign: "center" }}>
         <button
           className="ghost"
           style={{ color: "#f87171", border: "1px solid #f8717140", borderRadius: "8px", padding: "8px 20px" }}

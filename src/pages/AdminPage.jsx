@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { CAT_META } from "../data/categories.js";
 import { renderMD } from "../lib/markdown.js";
+import {
+  fetchAllSubmissions,
+  createQuestion,
+  updateQuestion,
+  reviewQuestion,
+  deleteQuestion,
+} from "../lib/questions.js";
+import QuestionForm from "../components/QuestionForm.jsx";
 
 const STATUS_COLORS = {
   pending:  "#fbbf24",
@@ -14,6 +22,7 @@ const STATUS_COLORS = {
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
+  const { upsertLocal, removeLocal } = useQuestions();
   const navigate = useNavigate();
 
   const [submissions, setSubmissions]  = useState([]);
@@ -23,49 +32,91 @@ export default function AdminPage() {
   const [adminNotes, setAdminNotes]    = useState({});
   const [acting, setActing]            = useState(null);
 
+  // CRUD editor state: null = closed, "new" = creating, or a submission object = editing.
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving]   = useState(false);
+
   // Guard: redirect if not admin
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) navigate("/");
   }, [user, isAdmin, loading]);
 
   const fetchSubmissions = async () => {
-    if (!supabase) return;
     setFetching(true);
-    const { data, error } = await supabase
-      .from("submissions")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error) setSubmissions(data || []);
-    setFetching(false);
+    try {
+      setSubmissions(await fetchAllSubmissions());
+    } catch (err) {
+      toast.error("Failed to load: " + err.message);
+    } finally {
+      setFetching(false);
+    }
   };
 
   useEffect(() => {
     if (isAdmin) fetchSubmissions();
   }, [isAdmin]);
 
+  // ---- approve / reject ----
   const act = async (id, status) => {
     setActing(id);
-    const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("submissions")
-      .update({
-        status,
-        admin_notes:  adminNotes[id] || null,
-        reviewed_at:  now,
-        reviewed_by:  user.id,
-      })
-      .eq("id", id);
-
-    if (error) {
-      toast.error("Failed: " + error.message);
-    } else {
+    try {
+      const row = await reviewQuestion(id, status, adminNotes[id] || null);
       toast.success(status === "approved" ? "✓ Approved and live!" : "Rejected.");
-      setSubmissions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status, admin_notes: adminNotes[id] || null } : s))
-      );
+      setSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, ...row } : s)));
       setExpanded(null);
+      // Keep the live deck in sync.
+      if (status === "approved") upsertLocal(row);
+      else removeLocal(id);
+    } catch (err) {
+      toast.error("Failed: " + err.message);
+    } finally {
+      setActing(null);
     }
-    setActing(null);
+  };
+
+  // ---- create / edit ----
+  const handleSave = async (form) => {
+    if (!form.q.trim() || !form.a.trim()) {
+      toast.error("Question and answer are required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (editing === "new") {
+        const row = await createQuestion(form, user);
+        setSubmissions((prev) => [row, ...prev]);
+        upsertLocal(row);
+        toast.success("Question created and live!");
+      } else {
+        const row = await updateQuestion(editing.id, form);
+        setSubmissions((prev) => prev.map((s) => (s.id === row.id ? { ...s, ...row } : s)));
+        // Reflect edits in the deck (or drop it if it isn't approved).
+        if (row.status === "approved" || editing.status === "approved") upsertLocal(row);
+        toast.success("Saved!");
+      }
+      setEditing(null);
+    } catch (err) {
+      toast.error("Failed: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ---- delete ----
+  const handleDelete = async (s) => {
+    if (!window.confirm(`Delete this question permanently?\n\n"${s.q}"`)) return;
+    setActing(s.id);
+    try {
+      await deleteQuestion(s.id);
+      setSubmissions((prev) => prev.filter((x) => x.id !== s.id));
+      removeLocal(s.id);
+      setExpanded(null);
+      toast.success("Deleted.");
+    } catch (err) {
+      toast.error("Failed to delete: " + err.message);
+    } finally {
+      setActing(null);
+    }
   };
 
   if (loading || (!isAdmin && user)) {
@@ -84,16 +135,40 @@ export default function AdminPage() {
     rejected: submissions.filter((s) => s.status === "rejected").length,
   };
 
+  // ---- editor view ----
+  if (editing) {
+    return (
+      <div className="wrap page-wrap">
+        <div className="page-header">
+          <button className="back-link" onClick={() => setEditing(null)}>← Back to admin</button>
+          <h1 className="page-title">{editing === "new" ? "New question" : "Edit question"}</h1>
+          <p className="page-sub">
+            {editing === "new"
+              ? "This goes live immediately (status: approved)."
+              : "Editing an existing question."}
+          </p>
+        </div>
+        <QuestionForm
+          initial={editing === "new" ? {} : editing}
+          onSubmit={handleSave}
+          submitLabel={editing === "new" ? "Create question" : "Save changes"}
+          onCancel={() => setEditing(null)}
+          busy={saving}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="wrap page-wrap">
       <div className="page-header">
         <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Admin Panel</h1>
-        <p className="page-sub">Review and approve community submissions.</p>
+        <p className="page-sub">Review submissions and manage the question bank.</p>
       </div>
 
-      {/* Summary chips */}
-      <div className="chips" style={{ marginBottom: "20px" }}>
+      {/* Filter chips + New button */}
+      <div className="chips" style={{ marginBottom: "20px", alignItems: "center" }}>
         {["pending", "approved", "rejected", "all"].map((s) => (
           <button
             key={s}
@@ -105,6 +180,9 @@ export default function AdminPage() {
             <span style={{ opacity: 0.6 }}>{s !== "all" ? counts[s] ?? 0 : submissions.length}</span>
           </button>
         ))}
+        <button className="submit-btn" style={{ marginLeft: "auto" }} onClick={() => setEditing("new")}>
+          + New question
+        </button>
       </div>
 
       {fetching && <div className="empty-state">Loading submissions…</div>}
@@ -124,13 +202,12 @@ export default function AdminPage() {
                   <span className="b-cat" style={{ color: accent, borderColor: "currentColor" }}>
                     {s.cat}
                   </span>
-                  <span
-                    className="status-badge"
-                    style={{ color: STATUS_COLORS[s.status] }}
-                  >
+                  <span className="status-badge" style={{ color: STATUS_COLORS[s.status] }}>
                     ● {s.status}
                   </span>
-                  <span className="diff-badge diff-badge--{s.difficulty}">{s.difficulty}</span>
+                  <span className={"diff-badge diff-badge--" + s.difficulty}>{s.difficulty}</span>
+                  {s.source === "core" && <span className="source-badge">core</span>}
+                  {s.company && <span className="company-badge company-badge--inline">{s.company}</span>}
                 </div>
                 <p className="admin-card-q">{s.q}</p>
                 <div className="admin-card-byline">
@@ -206,6 +283,20 @@ export default function AdminPage() {
                       </p>
                     </div>
                   )}
+
+                  {/* Edit / delete available on every question */}
+                  <div className="admin-btns" style={{ marginTop: "14px" }}>
+                    <button className="admin-btn edit" onClick={() => setEditing(s)}>
+                      ✎ Edit
+                    </button>
+                    <button
+                      className="admin-btn delete"
+                      disabled={acting === s.id}
+                      onClick={() => handleDelete(s)}
+                    >
+                      {acting === s.id ? "…" : "🗑 Delete"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

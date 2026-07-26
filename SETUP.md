@@ -10,13 +10,24 @@
 
 ## 2. Run the Database Schema
 
-1. In your Supabase dashboard → **SQL Editor** → **New query**
-2. Paste the contents of `supabase/migrations/001_schema.sql`
-3. Click **Run**
-4. In the same editor, add yourself as admin:
+Run these in the Supabase **SQL Editor**, in order:
+
+1. Paste + **Run** `supabase/migrations/001_schema.sql` (base tables + RLS).
+2. Paste + **Run** `supabase/migrations/002_questions_crud.sql`
+   (adds the `company` / `source` / `updated_at` columns, tightens the insert
+   policy, and adds the admin delete policy + CRUD support).
+3. Add yourself as admin:
    ```sql
    INSERT INTO admins (email) VALUES ('your-email@example.com');
    ```
+
+### Seed the original 253 questions (optional but recommended)
+
+Paste + **Run** `supabase/seed_core_questions.sql`. It imports the original
+deck as approved `core` questions.
+
+> ⚠️ Run the seed **once** — re-running appends duplicates unless you
+> `TRUNCATE submissions;` first.
 
 ---
 
@@ -47,10 +58,21 @@ cp .env.example .env.local
 Fill in the values from your Supabase project dashboard (**Settings → API**):
 
 ```env
+# Frontend (browser) — public anon key only
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_ADMIN_EMAIL=your-email@example.com
+
+# Node API (server-side only)
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # Settings → API → service_role
+PORT=3001
+CORS_ORIGINS=http://localhost:5173
 ```
+
+> 🔐 The **service-role** key bypasses Row Level Security. Keep it only in
+> `.env.local` and your host's env — never in a `VITE_*` var or the browser.
 
 ---
 
@@ -58,24 +80,40 @@ VITE_ADMIN_EMAIL=your-email@example.com
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev:all      # API on :3001 + web app on :5173
 ```
+
+Or run them in separate terminals: `npm run server` and `npm run dev`.
+The web app proxies `/api` to the Node server, so open http://localhost:5173.
 
 ---
 
-## 6. Deploy to Vercel
+## 6. Deploy
 
-### One-time setup:
+There are **two** deployables: the frontend and the Node API.
+
+### Frontend → Vercel
 
 1. Push your code to a GitHub repo
 2. Go to [vercel.com](https://vercel.com) → **New Project** → import your repo
-3. Add all three environment variables in **Settings → Environment Variables**:
+3. Add these environment variables in **Settings → Environment Variables**:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_ADMIN_EMAIL`
+   - `VITE_API_URL` — your deployed API URL (e.g. `https://your-api.onrender.com/api`),
+     or leave it as `/api` if the API is served from the same domain
 4. Click **Deploy**
 
 Vercel auto-deploys on every `git push`. The `vercel.json` in this repo handles SPA routing.
+
+### API (`server/`) → any Node host
+
+Deploy `server/` to Render, Railway, Fly, a VM, or Vercel serverless. Set:
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `CORS_ORIGINS` — your frontend's origin(s), comma-separated
+  (e.g. `https://flashcards.yourdomain.com`)
+
+Start command: `npm run server`. Health check: `GET /api/health`.
 
 ### Add your custom domain:
 
@@ -98,13 +136,17 @@ Add your production domain to Supabase's allowed redirect URLs:
 
 ---
 
-## How the Approval Flow Works
+## How the Approval & CRUD Flow Works
 
-1. Anyone visits `/submit` and fills in the form → saved as `status: 'pending'`
+1. Anyone visits `/submit` and fills in the form (incl. an optional **company**)
+   → saved as `status: 'pending'`
 2. You sign in with your admin email → the **Admin** nav link appears
-3. Visit `/admin` → see all pending submissions, expand to read full answer
-4. Click **✓ Approve** → card instantly goes live for all users
-5. Click **✗ Reject** → can add a note explaining why
+3. Visit `/admin`:
+   - See all pending submissions, expand to read the full answer
+   - **✓ Approve** → card instantly goes live for all users
+   - **✗ Reject** → can add a note explaining why
+   - **+ New question** → create a question that goes live immediately
+   - Expand any card → **✎ Edit** to change it, or **🗑 Delete** to remove it
 
 ---
 

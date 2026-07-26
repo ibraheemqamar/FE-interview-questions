@@ -33,7 +33,8 @@ export default function BrowseView({ allCards = [], filtered, browseOpen, onTogg
               {c.difficulty && c.difficulty !== 'intermediate' && (
                 <span className="diff-dot" style={{ background: DIFF_COLOR[c.difficulty] }} title={c.difficulty} />
               )}
-              {c.community && <span className="community-badge">community</span>}
+              {c.company && <span className="company-badge company-badge--inline">{c.company}</span>}
+              {c.source === "community" && <span className="community-badge">community</span>}
               {cardStatus === 'known'  && <span className="b-status known">✓</span>}
               {cardStatus === 'review' && <span className="b-status review">↻</span>}
               <span className="b-caret">▶</span>

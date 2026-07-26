@@ -1,5 +1,6 @@
 import { CAT_META } from "../data/categories.js";
 import { renderMD } from "../lib/markdown.js";
+import AiTutor from "./AiTutor.jsx";
 
 function accentFor(cat) {
   return (CAT_META[cat] || {}).c || "#5b8def";
@@ -27,10 +28,11 @@ export default function Flashcard({ card, revealed, followupRevealed, onReveal, 
               {card.difficulty}
             </span>
           )}
-          {card.community && <span className="community-badge">community</span>}
+          {card.source === "community" && <span className="community-badge">community</span>}
         </div>
       </div>
       <h2 className="card-q">{card.q}</h2>
+      {card.company && <div className="company-badge">asked at {card.company}</div>}
 
       {!revealed ? (
         <button className="reveal-btn" onClick={onReveal}>
@@ -57,6 +59,7 @@ export default function Flashcard({ card, revealed, followupRevealed, onReveal, 
               {card.tags.map((t) => <span key={t} className="tag-pill">{t}</span>)}
             </div>
           )}
+          <AiTutor card={card} />
         </div>
       )}
     </article>

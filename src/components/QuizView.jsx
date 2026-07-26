@@ -1,22 +1,22 @@
 import Flashcard from "./Flashcard.jsx";
 import { CAT_META } from "../data/categories.js";
+import { GRADES, GRADE_META } from "../lib/sm2.js";
 
-// Quiz mode: counter, the current flashcard (or empty state), mark/nav controls,
-// and secondary shuffle/reset + keyboard hints.
+// Quiz mode: counter, the current flashcard (or empty state), 4-grade recall
+// controls (Again/Hard/Good/Easy), nav, and secondary shuffle/reset + hints.
 export default function QuizView({
   deck,
   pos,
   card,
   activeCat,
-  curStatus,
+  curGrade,
   revealed,
   followupRevealed,
   onReveal,
   onRevealFollowup,
   onPrev,
   onNext,
-  onMarkGot,
-  onMarkReview,
+  onGrade,
   onShuffle,
   onReset,
 }) {
@@ -51,19 +51,23 @@ export default function QuizView({
         />
       )}
 
+      <div className="grade-controls">
+        {GRADES.map((g) => (
+          <button
+            key={g}
+            className={"grade grade--" + g + (curGrade === g ? " on" : "")}
+            style={{ "--g": GRADE_META[g].color }}
+            onClick={() => onGrade(g)}
+            disabled={empty}
+          >
+            {GRADE_META[g].label} <kbd>{GRADE_META[g].key}</kbd>
+          </button>
+        ))}
+      </div>
+
       <div className="quiz-controls">
         <button className="nav" onClick={onPrev} disabled={empty || pos === 0}>
           ← Prev
-        </button>
-        <button
-          className={"mark review" + (curStatus === "review" ? " on" : "")}
-          onClick={onMarkReview}
-          disabled={empty}
-        >
-          Review again
-        </button>
-        <button className={"mark got" + (curStatus === "known" ? " on" : "")} onClick={onMarkGot} disabled={empty}>
-          Got it ✓
         </button>
         <button className="nav" onClick={onNext} disabled={empty || pos >= deck.length - 1}>
           Next →
@@ -79,7 +83,8 @@ export default function QuizView({
         </button>
         <span className="kbd-hint">
           <kbd>R</kbd> reveal · <kbd>F</kbd> follow-up · <kbd>←</kbd>
-          <kbd>→</kbd> nav · <kbd>1</kbd> got it · <kbd>2</kbd> review · <kbd>S</kbd> shuffle
+          <kbd>→</kbd> nav · <kbd>1</kbd> again · <kbd>2</kbd> hard · <kbd>3</kbd> good ·{" "}
+          <kbd>4</kbd> easy · <kbd>S</kbd> shuffle
         </span>
       </div>
     </main>

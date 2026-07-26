@@ -1,3 +1,17 @@
+// Four-grade recall scale (Anki-style), mapped onto SM-2 quality values.
+// Classic SM-2 treats quality >= 3 as a successful recall; "again" (< 3) resets
+// the card. `status` is the coarse two-bucket value the rest of the app already
+// uses (progress bar, stats, browse) — the DB `status` column only allows
+// 'known' | 'review', so passes that felt Hard still count as "review".
+export const GRADES = ["again", "hard", "good", "easy"];
+export const GRADE_QUALITY = { again: 1, hard: 3, good: 4, easy: 5 };
+export const GRADE_META = {
+  again: { label: "Again", key: "1", status: "review", color: "#f87171" },
+  hard:  { label: "Hard",  key: "2", status: "review", color: "#fbbf24" },
+  good:  { label: "Good",  key: "3", status: "known",  color: "#60a5fa" },
+  easy:  { label: "Easy",  key: "4", status: "known",  color: "#35d0a0" },
+};
+
 // SM-2 Spaced Repetition Algorithm
 // quality: 5 = perfect recall ("Got it"), 2 = failed/hard ("Review again")
 // Returns updated SM-2 state + ISO next-review date.

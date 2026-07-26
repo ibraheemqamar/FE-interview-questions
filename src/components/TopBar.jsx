@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { CAT_ORDER } from "../data/categories.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useProgress } from "../contexts/ProgressContext.jsx";
+import InstallButton from "./InstallButton.jsx";
 import AuthModal from "./AuthModal.jsx";
 
 export default function TopBar({ allCards = [] }) {
   const { user, isAdmin, signOut } = useAuth();
+  const { streak } = useProgress();
   const [showAuth, setShowAuth] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -25,9 +28,25 @@ export default function TopBar({ allCards = [] }) {
         </Link>
 
         <div className="topbar-right">
+          <InstallButton />
+          {streak?.current > 0 && (
+            <Link
+              to="/stats"
+              className="streak-pill"
+              title={`${streak.current}-day study streak` + (streak.studiedToday ? " · studied today" : " · study today to keep it")}
+            >
+              🔥 {streak.current}
+            </Link>
+          )}
           <nav className="nav-links">
             <NavLink to="/" end className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
               Deck
+            </NavLink>
+            <NavLink to="/paths" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
+              Paths
+            </NavLink>
+            <NavLink to="/mock" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
+              Mock
             </NavLink>
             <NavLink to="/stats" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
               Stats
