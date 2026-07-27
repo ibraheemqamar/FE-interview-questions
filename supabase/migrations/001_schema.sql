@@ -77,36 +77,48 @@ ALTER TABLE submissions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes        ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: Postgres has no "CREATE POLICY IF NOT EXISTS", so each policy is
+-- dropped first. This makes the whole migration safely re-runnable (idempotent)
+-- instead of failing with 42710 "policy already exists" on a second run.
+
 -- ---- admins table: only admins can read their own row ----
+DROP POLICY IF EXISTS "admins can read self" ON admins;
 CREATE POLICY "admins can read self" ON admins
   FOR SELECT USING (email = auth.jwt() ->> 'email');
 
 -- ---- submissions: public read for approved, admin reads all, anyone can insert ----
+DROP POLICY IF EXISTS "approved submissions are public" ON submissions;
 CREATE POLICY "approved submissions are public" ON submissions
   FOR SELECT USING (
     status = 'approved'
     OR EXISTS (SELECT 1 FROM admins WHERE email = auth.jwt() ->> 'email')
   );
 
+DROP POLICY IF EXISTS "anyone can submit" ON submissions;
 CREATE POLICY "anyone can submit" ON submissions
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "admins can update submissions" ON submissions;
 CREATE POLICY "admins can update submissions" ON submissions
   FOR UPDATE USING (
     EXISTS (SELECT 1 FROM admins WHERE email = auth.jwt() ->> 'email')
   );
 
 -- ---- user_progress: users manage only their own rows ----
+DROP POLICY IF EXISTS "users manage own progress" ON user_progress;
 CREATE POLICY "users manage own progress" ON user_progress
   FOR ALL USING (auth.uid() = user_id);
 
 -- ---- votes: authenticated users can vote, read is public ----
+DROP POLICY IF EXISTS "public can view votes" ON votes;
 CREATE POLICY "public can view votes" ON votes
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "authenticated users can vote" ON votes;
 CREATE POLICY "authenticated users can vote" ON votes
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "users can remove own vote" ON votes;
 CREATE POLICY "users can remove own vote" ON votes
   FOR DELETE USING (auth.uid() = user_id);
 
