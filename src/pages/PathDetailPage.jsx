@@ -4,6 +4,7 @@ import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { useProgress } from "../contexts/ProgressContext.jsx";
 import { CAT_META } from "../data/categories.js";
 import { buildPath } from "../lib/paths.js";
+import TopBar from "../components/TopBar.jsx";
 
 const DIFF_COLOR = { beginner: "#35d0a0", intermediate: "#fbbf24", advanced: "#f87171" };
 
@@ -30,6 +31,7 @@ export default function PathDetailPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
         <Link to="/paths" className="back-link">← All paths</Link>
         <h1 className="page-title">🏢 {company}</h1>

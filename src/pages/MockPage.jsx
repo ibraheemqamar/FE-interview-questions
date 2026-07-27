@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -7,6 +6,7 @@ import { CAT_ORDER, CAT_META } from "../data/categories.js";
 import { renderMD } from "../lib/markdown.js";
 import { listCompanies } from "../lib/paths.js";
 import { gradeAnswer } from "../lib/ai.js";
+import TopBar from "../components/TopBar.jsx";
 
 const COUNTS = [5, 10, 15];
 const TIMES = [60, 90, 120, 180];
@@ -189,8 +189,8 @@ export default function MockPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
-        <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Mock interview</h1>
         <p className="page-sub">
           A timed, sequential round. Type your answer under the clock, then

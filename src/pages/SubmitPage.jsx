@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { submitQuestion } from "../lib/questions.js";
 import QuestionForm from "../components/QuestionForm.jsx";
 import AuthModal from "../components/AuthModal.jsx";
+import TopBar from "../components/TopBar.jsx";
 
 export default function SubmitPage() {
   const { user } = useAuth();
@@ -38,6 +39,7 @@ export default function SubmitPage() {
   if (submitted) {
     return (
       <div className="wrap page-wrap">
+        <TopBar />
         <div className="success-state">
           <div className="success-icon">✓</div>
           <h2>Question submitted!</h2>
@@ -55,8 +57,8 @@ export default function SubmitPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
-        <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Submit a Question</h1>
         <p className="page-sub">
           Contribute to the community deck. The admin reviews and approves every submission before it goes live.

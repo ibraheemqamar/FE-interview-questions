@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useQuestions } from "../contexts/QuestionsContext.jsx";
@@ -13,6 +13,7 @@ import {
   deleteQuestion,
 } from "../lib/questions.js";
 import QuestionForm from "../components/QuestionForm.jsx";
+import TopBar from "../components/TopBar.jsx";
 
 const STATUS_COLORS = {
   pending:  "#fbbf24",
@@ -139,6 +140,7 @@ export default function AdminPage() {
   if (editing) {
     return (
       <div className="wrap page-wrap">
+        <TopBar />
         <div className="page-header">
           <button className="back-link" onClick={() => setEditing(null)}>← Back to admin</button>
           <h1 className="page-title">{editing === "new" ? "New question" : "Edit question"}</h1>
@@ -161,8 +163,8 @@ export default function AdminPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
-        <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Admin Panel</h1>
         <p className="page-sub">Review submissions and manage the question bank.</p>
       </div>

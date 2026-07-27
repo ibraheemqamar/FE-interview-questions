@@ -3,7 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0d1017">
+<meta name="theme-color" content="#0f172a">
+<script>
+  // Set the theme before first paint to avoid a flash of the wrong theme.
+  // Kept in sync with src/components/ThemeToggle.jsx (key + colors).
+  (function () {
+    try {
+      var t = localStorage.getItem("fid-theme");
+      if (t !== "light" && t !== "dark") {
+        t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "light" ? "#f8fafc" : "#0f172a");
+    } catch (e) {}
+  })();
+</script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Frontend Interview Deck</title>

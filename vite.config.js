@@ -2,8 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Base public path. Defaults to "/" (Vercel, custom domains, local dev). For a
+// GitHub Pages *project* site the app is served from "/<repo>/", so the deploy
+// workflow sets VITE_BASE="/FE-interview-questions/".
+const base = process.env.VITE_BASE || "/";
+
 // https://vite.dev/config/
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -15,11 +21,11 @@ export default defineConfig({
         short_name: "FE Deck",
         description:
           "Crowdsourced, company-tagged frontend interview questions with spaced repetition.",
-        theme_color: "#0d1017",
-        background_color: "#0d1017",
+        theme_color: "#0f172a",
+        background_color: "#0f172a",
         display: "standalone",
-        start_url: "/",
-        scope: "/",
+        start_url: base,
+        scope: base,
         icons: [
           { src: "pwa-192.png", sizes: "192x192", type: "image/png" },
           { src: "pwa-512.png", sizes: "512x512", type: "image/png" },
@@ -34,7 +40,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         cleanupOutdatedCaches: true,
-        navigateFallback: "/index.html",
+        navigateFallback: `${base}index.html`,
         // API + Supabase requests must hit the network, not the SPA shell.
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [

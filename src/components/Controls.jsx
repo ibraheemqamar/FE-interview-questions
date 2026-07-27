@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CAT_META, CAT_ORDER } from "../data/categories.js";
 
 const DIFFICULTIES = [
@@ -10,8 +10,18 @@ const DIFFICULTIES = [
 
 const DIFF_LABEL = Object.fromEntries(DIFFICULTIES.map((d) => [d.id, d.label]));
 
-// Chip row (category filters) + search + tag chips + active-filter pills +
-// Quiz/Cram/Browse mode toggle.
+// The three ways to study the deck — the primary choice on this page.
+const MODES = [
+  { id: "quiz",   icon: "🎯", label: "Quiz",   desc: "Spaced repetition — grade your recall" },
+  { id: "cram",   icon: "⚡", label: "Cram",   desc: "Timed sprint through a batch" },
+  { id: "browse", icon: "📖", label: "Browse", desc: "Read every answer, no grading" },
+];
+
+const HINT_KEY = "fid-deck-hint-dismissed-v1";
+
+// Primary "Mode" selector (what you're doing) over a grouped, secondary
+// "Filter" block (what you're studying): search + category chips + difficulty
+// + company + tags + active-filter pills.
 export default function Controls({
   mode, setMode,
   activeCat, setActiveCat,
@@ -25,6 +35,14 @@ export default function Controls({
   onResetFilters = () => {},
   allCards = [],
 }) {
+  const [hintOpen, setHintOpen] = useState(
+    () => typeof localStorage !== "undefined" && !localStorage.getItem(HINT_KEY)
+  );
+  const dismissHint = () => {
+    setHintOpen(false);
+    try { localStorage.setItem(HINT_KEY, "1"); } catch { /* ignore */ }
+  };
+
   const counts = useMemo(() => {
     const c = {};
     CAT_ORDER.forEach((cat) => (c[cat] = allCards.filter((card) => card.cat === cat).length));
@@ -61,85 +79,127 @@ export default function Controls({
 
   return (
     <div className="controls">
-      <div className="chips">
-        <Chip id="All" label="All" color="" count={allCards.length} />
-        {CAT_ORDER.map((cat) => (
-          <Chip key={cat} id={cat} label={CAT_META[cat].label} color={CAT_META[cat].c} count={counts[cat] ?? 0} />
+      {hintOpen && (
+        <div className="deck-hint">
+          <span className="deck-hint-text">
+            👋 Pick a <b>mode</b> below (how you study), then optionally <b>filter</b> the deck (what you study).
+          </span>
+          <button className="deck-hint-x" onClick={dismissHint} title="Got it">×</button>
+        </div>
+      )}
+
+      {/* Primary: how you want to study */}
+      <div className="mode-select" role="tablist" aria-label="Study mode">
+        {MODES.map((m) => (
+          <button
+            key={m.id}
+            role="tab"
+            aria-selected={mode === m.id}
+            className={"mode-opt" + (mode === m.id ? " on" : "")}
+            onClick={() => setMode(m.id)}
+          >
+            <span className="mode-opt-icon">{m.icon}</span>
+            <span className="mode-opt-body">
+              <span className="mode-opt-label">{m.label}</span>
+              <span className="mode-opt-desc">{m.desc}</span>
+            </span>
+          </button>
         ))}
       </div>
-      <div className="control-row">
-        <input
-          className="search"
-          type="text"
-          placeholder="Search questions, answers, keywords…"
-          autoComplete="off"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {companies.length > 0 && (
+
+      {/* Secondary: what you want to study */}
+      <div className="filters">
+        <div className="filters-head">
+          <span className="filters-label">Filter</span>
+          {pills.length > 0 && (
+            <button className="filter-clear" onClick={onResetFilters}>Clear all</button>
+          )}
+        </div>
+
+        <div className="control-row">
+          <input
+            className="search"
+            type="text"
+            placeholder="Search questions, answers, keywords…"
+            autoComplete="off"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           <select
             className="company-select"
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-            title="Filter by company"
+            value={diffFilter}
+            onChange={(e) => setDiffFilter(e.target.value)}
+            title="Filter by difficulty"
           >
-            <option value="All">All companies</option>
-            {companies.map((co) => (
-              <option key={co} value={co}>{co}</option>
+            {DIFFICULTIES.map((d) => (
+              <option key={d.id} value={d.id}>{d.label}</option>
             ))}
           </select>
+          {companies.length > 0 && (
+            <select
+              className="company-select"
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+              title="Filter by company"
+            >
+              <option value="All">All companies</option>
+              {companies.map((co) => (
+                <option key={co} value={co}>{co}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="filter-group">
+          <div className="filter-group-head">
+            <span className="filter-group-label">Category</span>
+            <span className="filter-group-hint">Pick one</span>
+            {activeCat !== "All" && (
+              <span className="filter-group-count">{CAT_META[activeCat]?.label || activeCat}</span>
+            )}
+          </div>
+          <div className="chips">
+            <Chip id="All" label="All" color="" count={allCards.length} />
+            {CAT_ORDER.map((cat) => (
+              <Chip key={cat} id={cat} label={CAT_META[cat].label} color={CAT_META[cat].c} count={counts[cat] ?? 0} />
+            ))}
+          </div>
+        </div>
+
+        {topTags.length > 0 && (
+          <div className="filter-group">
+            <div className="filter-group-head">
+              <span className="filter-group-label">Popular tags</span>
+              <span className="filter-group-hint">Combine any</span>
+              {tagFilter.size > 0 && (
+                <span className="filter-group-count">{tagFilter.size} selected</span>
+              )}
+            </div>
+            <div className="tag-chips">
+              {topTags.map((t) => (
+                <button
+                  key={t}
+                  className={"tag-chip" + (tagFilter.has(t) ? " active" : "")}
+                  onClick={() => onToggleTag(t)}
+                >
+                  #{t}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
-        <div className="diff-toggle">
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d.id}
-              className={diffFilter === d.id ? "active" : ""}
-              onClick={() => setDiffFilter(d.id)}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-        <div className="modeToggle">
-          <button className={mode === "quiz" ? "active" : ""} onClick={() => setMode("quiz")}>
-            Quiz
-          </button>
-          <button className={mode === "cram" ? "active" : ""} onClick={() => setMode("cram")}>
-            Cram
-          </button>
-          <button className={mode === "browse" ? "active" : ""} onClick={() => setMode("browse")}>
-            Browse
-          </button>
-        </div>
+
+        {pills.length > 0 && (
+          <div className="filter-pills">
+            <span className="filter-pills-label">Active:</span>
+            {pills.map((p) => (
+              <button key={p.key} className="filter-pill" onClick={p.clear} title="Remove filter">
+                {p.label} <span className="filter-pill-x">×</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-
-      {topTags.length > 0 && (
-        <div className="tag-chips">
-          {topTags.map((t) => (
-            <button
-              key={t}
-              className={"tag-chip" + (tagFilter.has(t) ? " active" : "")}
-              onClick={() => onToggleTag(t)}
-            >
-              #{t}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {pills.length > 0 && (
-        <div className="filter-pills">
-          <span className="filter-pills-label">Filters:</span>
-          {pills.map((p) => (
-            <button key={p.key} className="filter-pill" onClick={p.clear} title="Remove filter">
-              {p.label} <span className="filter-pill-x">×</span>
-            </button>
-          ))}
-          <button className="filter-clear" onClick={onResetFilters}>
-            Clear all
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -3,12 +3,17 @@ import { Link, NavLink } from "react-router-dom";
 import { CAT_ORDER } from "../data/categories.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useProgress } from "../contexts/ProgressContext.jsx";
+import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import InstallButton from "./InstallButton.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 import AuthModal from "./AuthModal.jsx";
 
-export default function TopBar({ allCards = [] }) {
+// Self-sufficient app header — reads the deck count from context so it can be
+// dropped into any page (not just the Deck) to give consistent navigation.
+export default function TopBar() {
   const { user, isAdmin, signOut } = useAuth();
   const { streak } = useProgress();
+  const { questions } = useQuestions();
   const [showAuth, setShowAuth] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -28,6 +33,7 @@ export default function TopBar({ allCards = [] }) {
         </Link>
 
         <div className="topbar-right">
+          <ThemeToggle />
           <InstallButton />
           {streak?.current > 0 && (
             <Link
@@ -89,9 +95,11 @@ export default function TopBar({ allCards = [] }) {
             </button>
           )}
 
-          <div className="deckstat">
-            <b>{allCards.length}</b> cards · <b>{CAT_ORDER.length}</b> topics
-          </div>
+          {questions.length > 0 && (
+            <div className="deckstat">
+              <b>{questions.length}</b> cards · <b>{CAT_ORDER.length}</b> topics
+            </div>
+          )}
         </div>
       </header>
 

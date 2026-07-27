@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { useProgress } from "../contexts/ProgressContext.jsx";
 import { listCompanies } from "../lib/paths.js";
+import TopBar from "../components/TopBar.jsx";
 
 // /paths — pick a company to study a curated path of its real questions.
 export default function PathsPage() {
@@ -13,8 +14,8 @@ export default function PathsPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
-        <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Company study paths</h1>
         <p className="page-sub">
           Drill the questions really asked at a company — its tagged questions

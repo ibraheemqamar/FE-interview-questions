@@ -231,7 +231,7 @@ export default function HomePage() {
 
   return (
     <div className="wrap">
-      <TopBar allCards={allCards} />
+      <TopBar />
       {seed ? (
         <div className="path-banner">
           <div className="path-banner-info">

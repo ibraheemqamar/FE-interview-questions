@@ -1,11 +1,11 @@
 import { useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { CAT_ORDER, CAT_META } from "../data/categories.js";
 import { useProgress } from "../contexts/ProgressContext.jsx";
 import { useQuestions } from "../contexts/QuestionsContext.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { isDue } from "../lib/sm2.js";
+import TopBar from "../components/TopBar.jsx";
 
 export default function StatsPage() {
   const { progress, reset, streak, exportData, importProgress } = useProgress();
@@ -67,8 +67,8 @@ export default function StatsPage() {
 
   return (
     <div className="wrap page-wrap">
+      <TopBar />
       <div className="page-header">
-        <Link to="/" className="back-link">← Back to deck</Link>
         <h1 className="page-title">Your Stats</h1>
         <p className="page-sub">
           {user ? `Progress synced to cloud for ${user.email}.` : "Progress saved locally. Sign in to sync across devices."}

@@ -42,6 +42,15 @@ A bare `npm run dev` starts only the frontend, so every `/api/*` call 500s throu
 
 **Testing the PWA:** the service worker is disabled in `vite dev`. Run `npm run build && npm run preview`, then DevTools → Network → **Offline** to verify offline studying + progress sync.
 
+## UX clarity pass (2026-07-27)
+
+Information-architecture + consistency pass across all pages (palette kept):
+
+- **Global nav on every page.** `TopBar` is now self-sufficient (reads the deck count from `useQuestions` instead of an `allCards` prop) and renders on Deck, Paths, Path detail, Mock, Stats, Submit, Admin. Previously sub-pages had *no* nav — only a "← Back to deck" link, a dead-end. Removed those; kept contextual back-links ("← All paths", "← Back to admin").
+- **Deck page hierarchy** ([Controls.jsx](src/components/Controls.jsx)): split into a primary **Mode** selector (Quiz / Cram / Browse, each a card with icon + one-line description) over a grouped, secondary **Filter** panel (search + difficulty/company dropdowns + category chips + tags + active pills). Difficulty is now a dropdown (was a toggle), so it's usable on mobile. Added a dismissible first-run hint (localStorage `fid-deck-hint-dismissed-v1`).
+- Removed the mobile `.diff-toggle{display:none}` rule (it was hiding the Mock setup's difficulty picker on phones); tidied unused `Link` imports; display-font on the Cram setup heading.
+- Build passes. Not visually verified in a browser by me — worth a quick `npm run dev:all` pass.
+
 ## Open decisions / flags
 
 - **`Performance` is a catch-all category** for browser/tooling/testing/system-design questions (no dedicated category exists). Could add real `Browser` / `Testing` / `Architecture` categories instead (edits to `categories.js`, `validate.js`, `CAT_ORDER`).
