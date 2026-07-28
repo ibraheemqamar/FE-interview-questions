@@ -9,7 +9,7 @@
   :root{
     /* structure (theme-independent) */
     --radius:16px; --radius-sm:10px;
-    --maxw:820px;
+    --maxw:1020px;
 
     /* ---------- DARK (default) ---------- */
     color-scheme:dark;
