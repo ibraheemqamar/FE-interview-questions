@@ -76,7 +76,7 @@ export default function QuizView({
 
       <div className="secondary-controls">
         <button className="ghost" onClick={onShuffle}>
-          ⤮ Shuffle deck
+          ⤮ Shuffle
         </button>
         <button className="ghost" onClick={onReset}>
           Reset progress

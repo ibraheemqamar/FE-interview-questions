@@ -48,7 +48,7 @@ export default function SubmitPage() {
             <button className="chip active" onClick={() => setSubmitted(false)}>
               Submit another
             </button>
-            <Link to="/" className="chip">← Back to deck</Link>
+            <Link to="/" className="chip">← Back to questions</Link>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function SubmitPage() {
       <div className="page-header">
         <h1 className="page-title">Submit a Question</h1>
         <p className="page-sub">
-          Contribute to the community deck. The admin reviews and approves every submission before it goes live.
+          Contribute to the community question bank. The admin reviews and approves every submission before it goes live.
         </p>
         {!user && (
           <div className="auth-notice">

@@ -13,6 +13,7 @@ import {
   deleteQuestion,
 } from "../lib/questions.js";
 import QuestionForm from "../components/QuestionForm.jsx";
+import AdminProblems from "../components/AdminProblems.jsx";
 import TopBar from "../components/TopBar.jsx";
 
 const STATUS_COLORS = {
@@ -26,6 +27,8 @@ export default function AdminPage() {
   const { upsertLocal, removeLocal } = useQuestions();
   const navigate = useNavigate();
 
+  // Which bank we're managing: 'questions' (flashcards) or 'problems' (Practice).
+  const [section, setSection]          = useState("questions");
   const [submissions, setSubmissions]  = useState([]);
   const [fetching, setFetching]        = useState(true);
   const [filter, setFilter]            = useState("pending");
@@ -136,8 +139,8 @@ export default function AdminPage() {
     rejected: submissions.filter((s) => s.status === "rejected").length,
   };
 
-  // ---- editor view ----
-  if (editing) {
+  // ---- editor view (questions only; problems have their own editor) ----
+  if (editing && section === "questions") {
     return (
       <div className="wrap page-wrap">
         <TopBar />
@@ -166,9 +169,29 @@ export default function AdminPage() {
       <TopBar />
       <div className="page-header">
         <h1 className="page-title">Admin Panel</h1>
-        <p className="page-sub">Review submissions and manage the question bank.</p>
+        <p className="page-sub">Review submissions and manage the question &amp; problem banks.</p>
       </div>
 
+      {/* Section toggle: flashcard questions vs Practice coding problems */}
+      <div className="admin-tabs">
+        <button
+          className={"admin-tab" + (section === "questions" ? " active" : "")}
+          onClick={() => setSection("questions")}
+        >
+          Questions
+        </button>
+        <button
+          className={"admin-tab" + (section === "problems" ? " active" : "")}
+          onClick={() => setSection("problems")}
+        >
+          Practice problems
+        </button>
+      </div>
+
+      {section === "problems" && <AdminProblems user={user} />}
+
+      {section === "questions" && (
+       <>
       {/* Filter chips + New button */}
       <div className="chips" style={{ marginBottom: "20px", alignItems: "center" }}>
         {["pending", "approved", "rejected", "all"].map((s) => (
@@ -305,6 +328,8 @@ export default function AdminPage() {
           );
         })}
       </div>
+       </>
+      )}
     </div>
   );
 }

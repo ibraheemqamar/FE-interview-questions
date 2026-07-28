@@ -120,18 +120,18 @@ export default function CramView({ pool, allCards, progress, onGrade }) {
     return (
       <main>
         <div className="cram-setup">
-          <h2 className="cram-setup-title">Cram session</h2>
+          <h2 className="cram-setup-title">Quick review</h2>
           <p className="cram-setup-sub">
-            A focused, timed run through your due reviews, cards you flagged, and
-            the ones you’ve seen least — drawn from your current filters.
+            A focused, timed run through your due reviews, questions you flagged,
+            and the ones you’ve seen least — drawn from your current filters.
           </p>
           {maxAvail === 0 ? (
             <div className="empty-state">
-              No cards match your filters. Adjust them to start a cram session.
+              No questions match your filters. Adjust them to start a quick review.
             </div>
           ) : (
             <>
-              <div className="cram-size-label">How many cards?</div>
+              <div className="cram-size-label">How many questions?</div>
               <div className="cram-size-btns">
                 {SIZES.map((n) => (
                   <button
@@ -144,9 +144,9 @@ export default function CramView({ pool, allCards, progress, onGrade }) {
                 ))}
               </div>
               <button className="cram-start" onClick={() => beginSession(size)}>
-                Start cram · {Math.min(size, maxAvail)} cards
+                Start · {Math.min(size, maxAvail)} questions
               </button>
-              <div className="cram-avail">{maxAvail} cards available in this deck</div>
+              <div className="cram-avail">{maxAvail} questions available</div>
             </>
           )}
         </div>
@@ -166,7 +166,7 @@ export default function CramView({ pool, allCards, progress, onGrade }) {
     return (
       <main>
         <div className="cram-summary">
-          <h2 className="cram-setup-title">Session complete</h2>
+          <h2 className="cram-setup-title">Review complete</h2>
           <div className="cram-stats">
             <div className="cram-stat">
               <div className="cram-stat-num" style={{ color: "#35d0a0" }}>{got}</div>
@@ -192,7 +192,7 @@ export default function CramView({ pool, allCards, progress, onGrade }) {
               </button>
             )}
             <button className="ghost" onClick={() => setPhase("setup")}>
-              New session
+              New review
             </button>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function CramView({ pool, allCards, progress, onGrade }) {
 
       <div className="secondary-controls">
         <button className="ghost" onClick={finish}>
-          End session early
+          End early
         </button>
         <span className="kbd-hint">
           <kbd>R</kbd> reveal · <kbd>F</kbd> follow-up · <kbd>1</kbd> again ·{" "}

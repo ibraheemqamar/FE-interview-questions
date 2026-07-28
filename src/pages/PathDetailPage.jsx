@@ -26,19 +26,19 @@ export default function PathDetailPage() {
 
   const startPath = (mode) =>
     navigate("/", {
-      state: { seed: { ids: cards.map((c) => c.id), label: `${company} path`, mode } },
+      state: { seed: { ids: cards.map((c) => c.id), label: company, mode } },
     });
 
   return (
     <div className="wrap page-wrap">
       <TopBar />
       <div className="page-header">
-        <Link to="/paths" className="back-link">← All paths</Link>
+        <Link to="/paths" className="back-link">← All companies</Link>
         <h1 className="page-title">🏢 {company}</h1>
         <p className="page-sub">
           {companyCount} question{companyCount === 1 ? "" : "s"} tagged {company}
           {cards.length > companyCount
-            ? ` · padded to ${cards.length} with related high-signal questions`
+            ? ` · topped up to ${cards.length} with related questions`
             : ""}
           .
         </p>
@@ -62,10 +62,10 @@ export default function PathDetailPage() {
 
           <div className="path-actions">
             <button className="cram-start" onClick={() => startPath("quiz")}>
-              ▶ Start this path
+              ▶ Start studying
             </button>
             <button className="ghost backup-btn" onClick={() => startPath("cram")}>
-              ⚡ Cram this path
+              ⚡ Quick review
             </button>
           </div>
 

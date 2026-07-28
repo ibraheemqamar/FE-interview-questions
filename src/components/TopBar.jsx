@@ -26,7 +26,7 @@ export default function TopBar() {
               <i></i><i></i><i></i><i></i>
             </div>
             <div>
-              <h1>Frontend Interview Deck</h1>
+              <h1>Frontend Interview Prep</h1>
               <p className="tagline">Fundamentals &mdash; and the follow-up they hit you with next.</p>
             </div>
           </div>
@@ -46,13 +46,16 @@ export default function TopBar() {
           )}
           <nav className="nav-links">
             <NavLink to="/" end className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
-              Deck
+              Questions
             </NavLink>
             <NavLink to="/paths" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
-              Paths
+              Companies
             </NavLink>
             <NavLink to="/mock" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
-              Mock
+              Mock interview
+            </NavLink>
+            <NavLink to="/practice" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
+              Practice
             </NavLink>
             <NavLink to="/stats" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
               Stats
@@ -97,7 +100,7 @@ export default function TopBar() {
 
           {questions.length > 0 && (
             <div className="deckstat">
-              <b>{questions.length}</b> cards · <b>{CAT_ORDER.length}</b> topics
+              <b>{questions.length}</b> questions · <b>{CAT_ORDER.length}</b> topics
             </div>
           )}
         </div>

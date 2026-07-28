@@ -10,13 +10,14 @@ async function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// P2.1 — stream the AI tutor's explanation. Calls onText(chunk) as tokens
-// arrive; resolves when the stream completes. Pass an AbortSignal to cancel.
-export async function streamTutor(questionId, mode, { onText, signal } = {}) {
-  const res = await fetch(`${BASE}/ai/tutor`, {
+// Shared SSE POST helper. Streams `data: {...}` frames, calling onText(chunk)
+// as tokens arrive; resolves on {done:true}, throws on {error}. Pass an
+// AbortSignal to cancel.
+async function streamSSE(path, body, { onText, signal } = {}) {
+  const res = await fetch(`${BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await authHeader()) },
-    body: JSON.stringify({ questionId, mode }),
+    body: JSON.stringify(body),
     signal,
   });
 
@@ -54,6 +55,16 @@ export async function streamTutor(questionId, mode, { onText, signal } = {}) {
       if (payload.text) onText?.(payload.text);
     }
   }
+}
+
+// P2.1 — stream the AI tutor's explanation for a flashcard.
+export function streamTutor(questionId, mode, opts = {}) {
+  return streamSSE("/ai/tutor", { questionId, mode }, opts);
+}
+
+// Practice — stream the AI coach's hint / review / explain-failure for a problem.
+export function streamAssist(problemId, { mode, code, failingTest }, opts = {}) {
+  return streamSSE(`/problems/${problemId}/assist`, { mode, code, failingTest }, opts);
 }
 
 // P2.2 — grade a candidate's answer against the stored answer.

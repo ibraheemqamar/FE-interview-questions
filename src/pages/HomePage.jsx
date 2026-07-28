@@ -236,18 +236,18 @@ export default function HomePage() {
         <div className="path-banner">
           <div className="path-banner-info">
             <span className="path-banner-label">📌 {seed.label}</span>
-            <span className="path-banner-count">{activePool.length} cards</span>
+            <span className="path-banner-count">{activePool.length} questions</span>
           </div>
           <div className="path-banner-actions">
             <div className="modeToggle">
               <button className={mode === "quiz" ? "active" : ""} onClick={() => setMode("quiz")}>
-                Quiz
+                Practice
               </button>
               <button className={mode === "cram" ? "active" : ""} onClick={() => setMode("cram")}>
-                Cram
+                Quick review
               </button>
             </div>
-            <button className="ghost" onClick={exitSeed}>Exit path</button>
+            <button className="ghost" onClick={exitSeed}>Exit</button>
           </div>
         </div>
       ) : (

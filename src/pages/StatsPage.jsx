@@ -32,7 +32,7 @@ export default function StatsPage() {
     try {
       const parsed = JSON.parse(await file.text());
       const res = await importProgress(parsed);
-      toast.success(`Imported — ${res.merged} of ${res.seen} cards merged.`);
+      toast.success(`Imported — ${res.merged} of ${res.seen} questions merged.`);
     } catch (err) {
       toast.error("Couldn’t import that file: " + err.message);
     }
@@ -84,7 +84,7 @@ export default function StatsPage() {
           </div>
           <div className="streak-sub">
             {streak.current === 0
-              ? "Study a card to start a streak"
+              ? "Study a question to start a streak"
               : streak.studiedToday
               ? "Studied today — keep it going tomorrow"
               : "Study today to keep your streak alive"}
@@ -97,7 +97,7 @@ export default function StatsPage() {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value">{stats.studied}</div>
-          <div className="stat-label">Cards studied</div>
+          <div className="stat-label">Questions studied</div>
           <div className="stat-sub">of {totalStatic} total</div>
         </div>
         <div className="stat-card stat-card--green">
@@ -183,7 +183,7 @@ export default function StatsPage() {
       </div>
       <p className="backup-hint">
         Export a JSON backup of your spaced-repetition state, or merge one in
-        (the most recently reviewed version of each card wins).
+        (the most recently reviewed version of each question wins).
       </p>
 
       <div style={{ marginTop: "32px", textAlign: "center" }}>

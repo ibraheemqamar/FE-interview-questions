@@ -16,10 +16,10 @@ export default function PathsPage() {
     <div className="wrap page-wrap">
       <TopBar />
       <div className="page-header">
-        <h1 className="page-title">Company study paths</h1>
+        <h1 className="page-title">Study by company</h1>
         <p className="page-sub">
-          Drill the questions really asked at a company — its tagged questions
-          first, padded with high-signal questions in the same topics.
+          Practice the questions actually asked at a company — the ones tagged to
+          it first, then the most useful related questions in the same topics.
         </p>
       </div>
 
@@ -28,7 +28,7 @@ export default function PathsPage() {
       ) : companies.length === 0 ? (
         <div className="empty-state">
           No company-tagged questions yet. Add a company when you submit or edit a
-          question, then a path will appear here.
+          question, then it will appear here.
         </div>
       ) : (
         <div className="paths-grid">

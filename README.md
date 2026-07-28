@@ -385,6 +385,12 @@ Other tables: `admins` (email allow-list), `user_progress` (per-user SM-2 state)
 | `4` | Grade _Easy_ |
 | `S` | Shuffle deck (Quiz) |
 
+### Practice (coding problems)
+
+| Key | Action |
+| --- | --- |
+| `⌘/Ctrl` + `Enter` | Run your code against the tests (editor focused) |
+
 ## Adding / editing questions
 
 - **As a visitor:** go to `/submit`, fill in the form (category, difficulty,
@@ -397,6 +403,27 @@ Other tables: `admins` (email allow-list), `user_progress` (per-user SM-2 state)
 
 To add a whole new **topic**, add an entry to `CAT_META` and `CAT_ORDER` in
 [categories.js](src/data/categories.js), then author questions with that `cat`.
+
+## Practice (coding problems)
+
+`/practice` is a bank of live JavaScript/React coding problems. Users write a
+solution in an in-browser [CodeMirror](https://codemirror.net/) editor, run it
+against the problem's test cases, and get AI coaching (hint / review / explain a
+failing test). All code execution happens **client-side** in a sandboxed
+`<iframe sandbox="allow-scripts">` (no `allow-same-origin`), so untrusted code
+can't touch cookies, `localStorage`, or the Supabase session — see
+[src/lib/sandbox.js](src/lib/sandbox.js). A per-run timeout guards against
+infinite loops.
+
+- **Run the migration first:** apply
+  [supabase/migrations/005_problems_schema.sql](supabase/migrations/005_problems_schema.sql)
+  in the Supabase SQL editor (creates `problems` + `problem_attempts` with RLS).
+- **Author problems:** go to `/admin` → **Practice problems** tab → **+ New
+  problem** (title, prompt, starter/solution code, and `{ name, call, expect }`
+  test cases). New problems go live immediately.
+- **AI coach** reuses the same Gemini setup as the flashcard tutor
+  (`GEMINI_API_KEY`, server-side only) — no extra key needed. It's rate-limited
+  per user and gracefully disabled (503) when no key is set.
 
 ## Deployment
 

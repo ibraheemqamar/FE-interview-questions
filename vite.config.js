@@ -39,11 +39,28 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        // Keep the heavy, lazy-loaded CodeMirror editor chunk OUT of the offline
+        // install precache — it's only needed on the Practice solve view (which
+        // requires network anyway). It's runtime-cached below so repeat visits
+        // are still fast, without bloating the PWA shell / first install.
+        globIgnores: ["**/CodeEditor-*.js"],
         cleanupOutdatedCaches: true,
         navigateFallback: `${base}index.html`,
         // API + Supabase requests must hit the network, not the SPA shell.
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
+          {
+            // Lazy editor chunk: cache-first after the first load so opening a
+            // second problem is instant, but never precached on install.
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && /\/assets\/CodeEditor-.*\.js$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "code-editor-chunk",
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             // The approved deck — serve instantly from cache, revalidate in the
             // background (stale-while-revalidate) so studying works offline.

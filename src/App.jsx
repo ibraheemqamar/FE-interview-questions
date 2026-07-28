@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { ProgressProvider } from "./contexts/ProgressContext.jsx";
 import { QuestionsProvider } from "./contexts/QuestionsContext.jsx";
+import { ProblemsProvider } from "./contexts/ProblemsContext.jsx";
 import { useAuth } from "./contexts/AuthContext.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import SubmitPage from "./pages/SubmitPage.jsx";
@@ -11,21 +12,27 @@ import StatsPage from "./pages/StatsPage.jsx";
 import PathsPage from "./pages/PathsPage.jsx";
 import PathDetailPage from "./pages/PathDetailPage.jsx";
 import MockPage from "./pages/MockPage.jsx";
+import PracticePage from "./pages/PracticePage.jsx";
+import ProblemPage from "./pages/ProblemPage.jsx";
 
 function AppRoutes() {
   const { user } = useAuth();
   return (
     <ProgressProvider user={user}>
       <QuestionsProvider>
+       <ProblemsProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/paths" element={<PathsPage />} />
           <Route path="/paths/:company" element={<PathDetailPage />} />
           <Route path="/mock" element={<MockPage />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/practice/:slug" element={<ProblemPage />} />
           <Route path="/submit" element={<SubmitPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/stats" element={<StatsPage />} />
         </Routes>
+       </ProblemsProvider>
       </QuestionsProvider>
     </ProgressProvider>
   );

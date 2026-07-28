@@ -75,3 +75,111 @@ export function validateQuestion(body = {}) {
     value: { cat, q, a, fq, fa, difficulty, company: company || null, tags },
   };
 }
+
+// ===========================================================================
+// Practice — coding problems. Same "server is the single source of truth for
+// what's valid" rule as validateQuestion above.
+// ===========================================================================
+
+const PROBLEM_LIMITS = {
+  slug: 80,
+  title: 120,
+  prompt_md: 8000,
+  starter_code: 8000,
+  solution_code: 8000,
+  tc_name: 120,
+  tc_call: 2000,
+  tc_expect: 2000,
+  test_cases: 40,
+  company: 80,
+  tag: 40,
+  tags: 12,
+};
+
+// url-friendly slug: lowercase, alphanumeric + single hyphens, no leading/trailing.
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function slugify(s) {
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, PROBLEM_LIMITS.slug);
+}
+
+// Validates + normalizes the test_cases array. Each case is
+// { name, call, expect } of JS-expression *strings* evaluated in the sandbox.
+function normalizeTestCases(raw, errors) {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) {
+    errors.push("test_cases must be an array");
+    return [];
+  }
+  if (raw.length > PROBLEM_LIMITS.test_cases) {
+    errors.push(`test_cases must have ≤ ${PROBLEM_LIMITS.test_cases} cases`);
+  }
+  const out = [];
+  raw.slice(0, PROBLEM_LIMITS.test_cases).forEach((tc, i) => {
+    const name = str(tc?.name);
+    const call = str(tc?.call);
+    const expect = str(tc?.expect);
+    if (!call) errors.push(`test_cases[${i}].call is required`);
+    if (call.length > PROBLEM_LIMITS.tc_call) errors.push(`test_cases[${i}].call must be ≤ ${PROBLEM_LIMITS.tc_call} chars`);
+    if (expect.length > PROBLEM_LIMITS.tc_expect) errors.push(`test_cases[${i}].expect must be ≤ ${PROBLEM_LIMITS.tc_expect} chars`);
+    if (name.length > PROBLEM_LIMITS.tc_name) errors.push(`test_cases[${i}].name must be ≤ ${PROBLEM_LIMITS.tc_name} chars`);
+    out.push({ name: name || `test ${i + 1}`, call, expect });
+  });
+  return out;
+}
+
+// Validates + normalizes an incoming problem body.
+// Returns { ok: true, value } or { ok: false, errors: [...] }.
+export function validateProblem(body = {}) {
+  const errors = [];
+
+  const title = str(body.title);
+  // Slug defaults to a slugified title when omitted; otherwise must be valid.
+  const slug = str(body.slug) ? slugify(body.slug) : slugify(title);
+  const prompt_md = str(body.prompt_md);
+  const category = str(body.category);
+  const difficulty = str(body.difficulty) || "intermediate";
+  const starter_code = typeof body.starter_code === "string" ? body.starter_code : "";
+  const solution_code = str(body.solution_code);
+  const company = str(body.company);
+
+  if (!title) errors.push("title is required");
+  if (title.length > PROBLEM_LIMITS.title) errors.push(`title must be ≤ ${PROBLEM_LIMITS.title} chars`);
+  if (!slug) errors.push("slug is required (or a non-empty title to derive it from)");
+  else if (!SLUG_RE.test(slug)) errors.push("slug must be lowercase letters, numbers and single hyphens");
+  if (!prompt_md) errors.push("prompt_md is required");
+  if (prompt_md.length > PROBLEM_LIMITS.prompt_md) errors.push(`prompt_md must be ≤ ${PROBLEM_LIMITS.prompt_md} chars`);
+  if (!CATEGORIES.includes(category)) errors.push(`category must be one of: ${CATEGORIES.join(", ")}`);
+  if (!DIFFICULTIES.includes(difficulty)) errors.push(`difficulty must be one of: ${DIFFICULTIES.join(", ")}`);
+  if (starter_code.length > PROBLEM_LIMITS.starter_code) errors.push(`starter_code must be ≤ ${PROBLEM_LIMITS.starter_code} chars`);
+  if (solution_code.length > PROBLEM_LIMITS.solution_code) errors.push(`solution_code must be ≤ ${PROBLEM_LIMITS.solution_code} chars`);
+  if (company.length > PROBLEM_LIMITS.company) errors.push(`company must be ≤ ${PROBLEM_LIMITS.company} chars`);
+
+  const test_cases = normalizeTestCases(body.test_cases, errors);
+
+  const tags = normalizeTags(body.tags);
+  if (tags.some((t) => t.length > PROBLEM_LIMITS.tag)) errors.push(`each tag must be ≤ ${PROBLEM_LIMITS.tag} chars`);
+
+  if (errors.length) return { ok: false, errors };
+
+  return {
+    ok: true,
+    value: {
+      slug,
+      title,
+      prompt_md,
+      category,
+      difficulty,
+      starter_code,
+      solution_code: solution_code || null,
+      test_cases,
+      company: company || null,
+      tags,
+    },
+  };
+}

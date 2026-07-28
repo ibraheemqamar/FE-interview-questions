@@ -10,11 +10,13 @@ const DIFFICULTIES = [
 
 const DIFF_LABEL = Object.fromEntries(DIFFICULTIES.map((d) => [d.id, d.label]));
 
-// The three ways to study the deck — the primary choice on this page.
+// The three ways to study — the primary choice on this page. NOTE: the `id`
+// values are internal keys used across the app (mode switching, saved sessions,
+// keyboard shortcuts); only the labels/descriptions are user-facing copy.
 const MODES = [
-  { id: "quiz",   icon: "🎯", label: "Quiz",   desc: "Spaced repetition — grade your recall" },
-  { id: "cram",   icon: "⚡", label: "Cram",   desc: "Timed sprint through a batch" },
-  { id: "browse", icon: "📖", label: "Browse", desc: "Read every answer, no grading" },
+  { id: "quiz",   icon: "🎯", label: "Practice",      desc: "See a question, recall it, then grade yourself" },
+  { id: "cram",   icon: "⚡", label: "Quick review",  desc: "Fast, timed run through a batch" },
+  { id: "browse", icon: "📖", label: "Read all",      desc: "Read every answer, nothing graded" },
 ];
 
 const HINT_KEY = "fid-deck-hint-dismissed-v1";
@@ -82,7 +84,7 @@ export default function Controls({
       {hintOpen && (
         <div className="deck-hint">
           <span className="deck-hint-text">
-            👋 Pick a <b>mode</b> below (how you study), then optionally <b>filter</b> the deck (what you study).
+            👋 Pick a <b>mode</b> below (how you study), then optionally <b>filter</b> the questions (what you study).
           </span>
           <button className="deck-hint-x" onClick={dismissHint} title="Got it">×</button>
         </div>

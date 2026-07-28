@@ -39,7 +39,7 @@ export default function InstallButton() {
   return (
     <>
       {offline && (
-        <span className="offline-pill" title="You’re offline — your cached deck still works">
+        <span className="offline-pill" title="You’re offline — your saved questions still work">
           ● offline
         </span>
       )}

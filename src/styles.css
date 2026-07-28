@@ -1021,3 +1021,123 @@
     font-size:.86rem;color:var(--text);line-height:1.5;
   }
   .ai-grade-followup .ai-grade-label{display:inline;margin-right:6px}
+
+/* =========================================================================
+   Practice — coding problems (admin tabs, problem form, list, solve view)
+   ========================================================================= */
+
+/* Admin section toggle (Questions vs Practice problems) */
+.admin-tabs{ display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--border); }
+.admin-tab{
+  appearance:none; background:none; border:none; cursor:pointer;
+  font-family:inherit; font-size:.9rem; color:var(--text-dim);
+  padding:8px 4px; margin-bottom:-1px; border-bottom:2px solid transparent;
+}
+.admin-tab:hover{ color:var(--text); }
+.admin-tab.active{ color:var(--text); border-bottom-color:var(--accent); }
+
+/* Monospace inputs (starter/solution code + test-case cells) */
+.code-input{
+  font-family:'JetBrains Mono', ui-monospace, monospace !important;
+  font-size:.82rem; line-height:1.5; white-space:pre; tab-size:2;
+}
+
+/* Test-case editor rows */
+.tc-list{ display:flex; flex-direction:column; gap:12px; margin:10px 0; }
+.tc-row{ border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; background:var(--surface-2); }
+.tc-row-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.tc-index{ font-family:'JetBrains Mono', monospace; color:var(--text-faint); font-size:.8rem; }
+.tc-name{ flex:1; }
+.tc-remove{
+  appearance:none; border:1px solid var(--border); background:none; color:var(--text-dim);
+  cursor:pointer; border-radius:6px; width:26px; height:26px; line-height:1;
+}
+.tc-remove:hover:not(:disabled){ color:#f87171; border-color:#f87171; }
+.tc-remove:disabled{ opacity:.35; cursor:not-allowed; }
+.tc-sublabel{ font-family:'JetBrains Mono', monospace; font-size:.72rem !important; color:var(--text-faint); text-transform:none !important; }
+.tc-add{ margin-top:4px; }
+
+/* Test-case preview in the admin problem card */
+.tc-preview{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.tc-preview li{ font-size:.82rem; color:var(--text-dim); }
+.tc-preview code{ font-size:.78rem; }
+.tc-preview-name{ display:block; color:var(--text-faint); font-size:.74rem; margin-bottom:1px; }
+
+/* --- Practice: editor + run results ------------------------------------- */
+.code-editor-shell{
+  border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden;
+  background:var(--code-bg);
+}
+.code-editor-shell .cm-editor{ font-size:.86rem; }
+.code-editor-shell .cm-editor.cm-focused{ outline:none; }
+.editor-loading{
+  padding:24px; text-align:center; color:var(--text-dim); font-size:.85rem;
+  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface);
+}
+
+.run-results{ margin-top:14px; font-size:.86rem; }
+.run-results--idle, .run-results--running{ color:var(--text-dim); padding:10px 2px; }
+
+.run-summary{ font-weight:600; padding:8px 12px; border-radius:var(--radius-sm); margin-bottom:12px; }
+.run-summary--pass{ color:#35d0a0; background:rgba(53,208,160,.12); }
+.run-summary--fail{ color:#fbbf24; background:rgba(251,191,36,.12); }
+.run-summary--error, .run-summary--timeout{ color:#f87171; background:rgba(248,113,113,.12); }
+.run-error-msg{ font-family:'JetBrains Mono', monospace; font-weight:400; }
+
+.test-list{ list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.test-item{ border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 12px; }
+.test-item--pass{ border-color:rgba(53,208,160,.4); }
+.test-item--fail{ border-color:rgba(248,113,113,.4); }
+.test-item-head{ display:flex; align-items:center; gap:8px; }
+.test-badge{ font-weight:700; }
+.test-item--pass .test-badge{ color:#35d0a0; }
+.test-item--fail .test-badge{ color:#f87171; }
+.test-name{ color:var(--text); }
+.test-detail{ margin-top:6px; padding-left:22px; display:flex; flex-direction:column; gap:3px; color:var(--text-dim); font-size:.82rem; }
+.test-detail-label{ display:inline-block; min-width:64px; color:var(--text-faint); }
+.test-detail code{ font-size:.78rem; }
+.test-thrown{ color:#f87171; }
+
+.console-panel{ border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.console-label{
+  font-family:'JetBrains Mono', monospace; font-size:.7rem; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--text-faint); padding:6px 12px; border-bottom:1px solid var(--border);
+  background:var(--surface-2);
+}
+.console-out{ margin:0; padding:10px 12px; font-family:'JetBrains Mono', monospace; font-size:.8rem;
+  color:var(--text); white-space:pre-wrap; word-break:break-word; max-height:200px; overflow:auto; }
+.console-empty{ padding:10px 12px; color:var(--text-faint); font-size:.8rem; }
+
+/* --- Practice: list grid + solve view ----------------------------------- */
+.practice-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:14px; }
+.practice-card{
+  display:block; text-decoration:none; color:inherit; padding:16px;
+  border:1px solid var(--border); border-left:3px solid var(--accent);
+  border-radius:var(--radius-sm); background:var(--surface); transition:transform .1s ease, border-color .1s ease;
+}
+.practice-card:hover{ transform:translateY(-2px); border-color:var(--accent); }
+.practice-card-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:10px; }
+.practice-card-title{ margin:0 0 8px; font-size:1rem; line-height:1.35; color:var(--text); }
+
+.solve-title-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.solve-status{ font-size:.75rem; font-weight:600; padding:3px 9px; border-radius:999px; }
+.solve-status--solved{ color:#35d0a0; background:rgba(53,208,160,.14); }
+.solve-status--gaveup{ color:var(--text-dim); background:var(--surface-2); }
+
+.solve-layout{ display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.2fr); gap:24px; align-items:start; }
+@media (max-width: 900px){ .solve-layout{ grid-template-columns:1fr; } }
+.solve-prompt{
+  border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px;
+  background:var(--surface); position:sticky; top:16px;
+}
+@media (max-width: 900px){ .solve-prompt{ position:static; } }
+.solve-work{ min-width:0; }
+
+.solve-editor-bar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.solve-editor-label{ font-family:'JetBrains Mono', monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); }
+.solve-editor-actions{ display:flex; align-items:center; gap:8px; }
+.solve-run-btn{ white-space:nowrap; }
+
+.solve-solution{ margin-top:18px; }
+.solve-reveal-btn{ width:100%; }
+.solve-solution-body .admin-section-label{ margin-bottom:8px; }

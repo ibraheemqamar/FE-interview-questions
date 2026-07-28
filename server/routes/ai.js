@@ -1,41 +1,19 @@
 import { Router } from "express";
 import { admin } from "../supabase.js";
 import { requireUser } from "../auth.js";
-import { ai, MODEL, aiEnabled, THINKING_OFF } from "../gemini.js";
+import { ai, MODEL, THINKING_OFF } from "../gemini.js";
+import { requireAiEnabled, makeRateLimiter } from "../aiShared.js";
 
 const router = Router();
 
 // ---------------------------------------------------------------------------
-// Guards
+// Guards — short-circuit to 503 when unconfigured, plus a per-user rate limit
+// (shared implementation in aiShared.js).
 // ---------------------------------------------------------------------------
 
-// Short-circuit every AI route when no key is configured.
-router.use((_req, res, next) => {
-  if (!aiEnabled) {
-    return res
-      .status(503)
-      .json({ error: "AI features are not configured on this server." });
-  }
-  next();
-});
+router.use(requireAiEnabled);
 
-// Naive per-user sliding-window rate limit (in-memory; resets on restart).
-// Enough to stop a runaway loop from burning the API budget.
-const RATE = { max: 30, windowMs: 5 * 60 * 1000 };
-const hits = new Map(); // userId -> number[] (timestamps)
-
-function rateLimit(req, res, next) {
-  const now = Date.now();
-  const arr = (hits.get(req.user.id) || []).filter((t) => now - t < RATE.windowMs);
-  if (arr.length >= RATE.max) {
-    return res
-      .status(429)
-      .json({ error: "Too many AI requests. Please wait a minute and retry." });
-  }
-  arr.push(now);
-  hits.set(req.user.id, arr);
-  next();
-}
+const rateLimit = makeRateLimiter({ max: 30, windowMs: 5 * 60 * 1000 });
 
 // ---------------------------------------------------------------------------
 // Grounding: always read the authoritative answer from the DB, never trust the
