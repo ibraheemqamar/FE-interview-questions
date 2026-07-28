@@ -11,6 +11,11 @@ export const CATEGORIES = [
   "Next.js",
   "TypeScript",
   "Performance",
+  "Accessibility",
+  "Testing",
+  "Git",
+  "Security",
+  "System Design",
 ];
 
 export const DIFFICULTIES = ["beginner", "intermediate", "advanced"];
